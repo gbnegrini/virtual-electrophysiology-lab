@@ -1,0 +1,5 @@
+numpy>=1.26
+scipy>=1.11
+bokeh>=3.4
+panel>=1.4
+pytest>=7.0

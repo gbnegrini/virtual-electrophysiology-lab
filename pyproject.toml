@@ -1,0 +1,22 @@
+[project]
+name = "electrophys-lab"
+version = "1.0.0"
+description = "Physics functions behind the Virtual Electrophysiology Lab: Nernst equilibrium potential, passive (RC) membrane properties, and Butterworth signal filtering."
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Guilherme Bauer-Negrini" }]
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+app = ["bokeh>=3.4", "panel>=1.4"]
+dev = ["pytest>=7.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["electrophys_lab*"]

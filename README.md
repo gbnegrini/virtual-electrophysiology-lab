@@ -3,7 +3,7 @@
 > An interactive study guide for membrane biophysics — equilibrium potentials, passive membrane
 > properties, and signal filtering.
 
-**[Live demo (zero install, runs in the browser)](https://claude.ai/code/artifact/dc1bcc97-3deb-47ca-bb5b-b6a4eb88899d)**
+**[Live demo (zero install, runs in the browser)](https://biomedicaldata.science/demos/electrophysiology-lab/)**
 
 This is a modernized, English-language rebuild of a 2019 Google Colab notebook built for an
 Electrophysiology of the Central Nervous System course. The original used Colab `#@param` form
@@ -28,6 +28,8 @@ electrophys_lab/    # the physics: pure, tested functions (no plotting, no widge
   membrane_rc.py      RC charge/discharge curves and time constant
   filters.py          composite test signal + Butterworth filtering (scipy)
 app.py               Panel app: binds the functions above to interactive widgets/plots
+web/index.html       zero-install browser version (vanilla JS + SVG, no build step) —
+                     the source of the live demo linked above
 tests/               pytest suite for electrophys_lab/, validated against the
                      original notebook's textbook reference values
 original/            the unmodified 2019 Colab export, kept for provenance
@@ -50,6 +52,10 @@ panel serve app.py --show
 
 Or open `app.py`'s functions directly in a Jupyter notebook (`import panel as pn; pn.extension()`
 first).
+
+The browser version needs no install at all — `web/index.html` is fully self-contained (only an
+external Google Fonts stylesheet, everything else inline), so opening it directly in a browser
+works.
 
 ## Testing
 

@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Virtual Electrophysiology Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #EEF2EF;
+    --panel: #FFFFFF;
+    --panel-2: #F5F8F6;
+    --ink: #10201A;
+    --ink-2: #435249;
+    --ink-3: #7C8C84;
+    --border: rgba(16,32,26,0.13);
+    --border-strong: rgba(16,32,26,0.22);
+    --accent: #B45309;
+    --accent-ink: #FFFFFF;
+    --accent-soft: rgba(180,83,9,0.12);
+    --led: #1AA35A;
+
+    --screen-bg: #0A120E;
+    --screen-grid: rgba(220,230,225,0.10);
+    --screen-grid-strong: rgba(220,230,225,0.22);
+    --screen-ink: #DCE6E1;
+    --screen-ink-dim: #85958D;
+
+    --s-blue: #3987e5;
+    --s-orange: #d95926;
+    --s-aqua: #199e70;
+    --s-yellow: #c98500;
+
+    --shadow-panel: 0 1px 2px rgba(16,32,26,0.06), 0 8px 24px -12px rgba(16,32,26,0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0B1210;
+      --panel: #121C18;
+      --panel-2: #16211C;
+      --ink: #E7EFEA;
+      --ink-2: #B7C7BE;
+      --ink-3: #7E8F86;
+      --border: rgba(231,239,234,0.13);
+      --border-strong: rgba(231,239,234,0.24);
+      --accent: #F2A65A;
+      --accent-ink: #1A0F00;
+      --accent-soft: rgba(242,166,90,0.16);
+      --led: #3FD37D;
+      --shadow-panel: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0B1210;
+    --panel: #121C18;
+    --panel-2: #16211C;
+    --ink: #E7EFEA;
+    --ink-2: #B7C7BE;
+    --ink-3: #7E8F86;
+    --border: rgba(231,239,234,0.13);
+    --border-strong: rgba(231,239,234,0.24);
+    --accent: #F2A65A;
+    --accent-ink: #1A0F00;
+    --accent-soft: rgba(242,166,90,0.16);
+    --led: #3FD37D;
+    --shadow-panel: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    line-height: 1.55;
+  }
+  h1, h2, h3, .label-face {
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    text-wrap: balance;
+  }
+  .mono, .readout, .tick, code {
+    font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  a { color: var(--accent); }
+  ::selection { background: var(--accent-soft); }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px 96px; }
+
+  /* ---------- Header ---------- */
+  header.top {
+    border-bottom: 1px solid var(--border);
+    padding: 22px 20px;
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .top-inner { max-width: 980px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .led-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--led); box-shadow: 0 0 0 3px color-mix(in oklab, var(--led) 25%, transparent), 0 0 10px 1px var(--led); flex: none; }
+  .brand-text { font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+  .brand-text small { display: block; font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 10.5px; letter-spacing: 0.09em; color: var(--ink-3); text-transform: uppercase; margin-top: 1px; }
+  nav.modnav { display: flex; gap: 4px; }
+  nav.modnav a {
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 500;
+    color: var(--ink-2); text-decoration: none; letter-spacing: 0.04em;
+    padding: 6px 10px; border-radius: 3px; border: 1px solid transparent;
+  }
+  nav.modnav a:hover { border-color: var(--border-strong); color: var(--ink); }
+
+  /* ---------- Hero ---------- */
+  .hero { padding: 46px 0 8px; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; }
+  h1.title { font-size: clamp(28px, 4.4vw, 42px); font-weight: 700; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .dek { font-size: 16.5px; color: var(--ink-2); max-width: 62ch; margin: 0 0 20px; }
+  .byline { font-size: 12.5px; color: var(--ink-3); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-family: "IBM Plex Mono", monospace; }
+  .byline a { color: var(--ink-2); text-decoration-color: var(--border-strong); }
+
+  /* ---------- Module panel ---------- */
+  .module { margin-top: 56px; }
+  .module-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .modnum { font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.06em; }
+  .module h2 { font-size: 23px; margin: 0; font-weight: 700; }
+  .module .intro { color: var(--ink-2); font-size: 15px; max-width: 68ch; margin: 10px 0 22px; }
+  .module .intro em.term { font-style: normal; color: var(--ink); border-bottom: 1px dotted var(--border-strong); }
+
+  .eq-box {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 12px 18px; margin: 4px 0 20px;
+  }
+  .eq { font-family: "IBM Plex Mono", monospace; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; font-size: 12.5px; line-height: 1.25; vertical-align: middle; margin: 0 2px; }
+  .frac .num, .frac .den { padding: 0 2px; }
+  .frac .num { border-bottom: 1.4px solid currentColor; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--shadow-panel); overflow: hidden;
+  }
+  .panel-grid { display: grid; grid-template-columns: 250px 1fr; }
+  @media (max-width: 720px) { .panel-grid { grid-template-columns: 1fr; } }
+
+  .controls { padding: 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 18px; background: var(--panel-2); }
+  @media (max-width: 720px) { .controls { border-right: none; border-bottom: 1px solid var(--border); } }
+
+  .field label, .seg-label {
+    display: block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 8px;
+  }
+  .field .val { color: var(--accent); font-weight: 600; }
+
+  input[type="range"] {
+    -webkit-appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track { height: 4px; background: var(--border-strong); border-radius: 2px; }
+  input[type="range"]::-moz-range-track { height: 4px; background: var(--border-strong); border-radius: 2px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 15px; height: 15px; margin-top: -5.5px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--border-strong);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 15px; height: 15px; border-radius: 50%; background: var(--accent); border: 2px solid var(--panel);
+    box-shadow: 0 0 0 1px var(--border-strong);
+  }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .seg { display: flex; border: 1px solid var(--border-strong); border-radius: 6px; overflow: hidden; }
+  .seg button {
+    flex: 1; padding: 8px 6px; font-family: "IBM Plex Sans Condensed", sans-serif; font-weight: 600; font-size: 12.5px;
+    background: var(--panel); color: var(--ink-2); border: none; cursor: pointer; border-right: 1px solid var(--border-strong);
+  }
+  .seg button:last-child { border-right: none; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+  .seg button:hover:not([aria-pressed="true"]) { background: var(--accent-soft); }
+
+  .readout {
+    background: var(--screen-bg); border-radius: 6px; padding: 12px 14px; margin-top: 2px;
+  }
+  .readout .rlabel { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--screen-ink-dim); margin-bottom: 4px; }
+  .readout .rval { font-family: "IBM Plex Mono", monospace; font-size: 22px; font-weight: 600; color: var(--led); text-shadow: 0 0 12px color-mix(in oklab, var(--led) 55%, transparent); }
+  .readout .runit { font-size: 13px; color: var(--screen-ink-dim); margin-left: 4px; }
+
+  .screen-wrap { padding: 20px; }
+  .screen { background: var(--screen-bg); border-radius: 6px; position: relative; }
+  .screen svg { display: block; width: 100%; height: auto; }
+  .screen text { font-family: "IBM Plex Mono", monospace; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 12px 20px 4px; }
+  .legend button {
+    display: flex; align-items: center; gap: 7px; background: none; border: none; cursor: pointer;
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-2); padding: 4px 0;
+  }
+  .legend button .sw { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+  .legend button[data-muted="true"] { color: var(--ink-3); text-decoration: line-through; opacity: 0.55; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--border-strong);
+    border-radius: 6px; padding: 8px 10px; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    color: var(--ink); box-shadow: var(--shadow-panel); white-space: nowrap; z-index: 5; opacity: 0; transition: opacity 0.08s;
+  }
+  .tooltip .tt-row { display: flex; align-items: center; gap: 6px; }
+  .tooltip .tt-sw { width: 8px; height: 8px; border-radius: 2px; }
+
+  .hint { padding: 16px 20px 20px; border-top: 1px solid var(--border); font-size: 13.5px; color: var(--ink-2); background: var(--panel-2); }
+  .hint b { color: var(--ink); }
+  .hint .answer { color: var(--accent); font-family: "IBM Plex Mono", monospace; font-weight: 600; }
+
+  .cell-note { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 22px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-3); }
+  .cell-note .dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+  .refnote { padding: 16px 20px; border-top: 1px solid var(--border); background: var(--panel-2); font-size: 12.5px; color: var(--ink-3); }
+
+  footer {
+    margin-top: 74px; padding-top: 22px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-3);
+  }
+  footer a { color: var(--ink-2); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } html { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <span class="led-dot" aria-hidden="true"></span>
+      <span class="brand-text">Virtual Electrophysiology Lab<small>Interactive study guide &middot; CNS biophysics</small></span>
+    </div>
+    <nav class="modnav">
+      <a href="#m1">01 Equilibrium potential</a>
+      <a href="#m2">02 Membrane RC</a>
+      <a href="#m3">03 Signal filtering</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Interactive study guide</div>
+    <h1 class="title">Virtual Electrophysiology Lab</h1>
+    <p class="dek">
+      Three hands-on modules covering the electrical behavior of the neuronal membrane: the
+      <em>equilibrium potential</em> of an ion species, the <em>passive (RC) properties</em> of the membrane,
+      and how <em>electronic filters</em> separate a signal of interest from noise in a recording.
+      Every plot below responds live &mdash; move a slider, watch the trace update.
+    </p>
+    <p class="byline">
+      <span>By Guilherme Bauer-Negrini</span>
+      <span>&middot;</span>
+      <span>Adapted from a 2019 teaching notebook, Electrophysiology of the Central Nervous System</span>
+      <span>&middot;</span>
+      <a href="https://github.com/gbnegrini/virtual-electrophysiology-lab" target="_blank" rel="noopener">Python source & notebook &rarr;</a>
+    </p>
+  </section>
+
+  <!-- ============ MODULE 1 : NERNST ============ -->
+  <section class="module" id="m1">
+    <div class="module-head"><span class="modnum">MODULE&nbsp;01</span><h2>Equilibrium potential</h2></div>
+    <p class="intro">
+      The <em class="term">equilibrium potential</em> (or <em class="term">Nernst potential</em>) of an ion is the
+      membrane potential at which its net flux across the membrane is zero &mdash; the electrical force pulling the
+      ion one way exactly balances the concentration gradient pushing it the other. It depends only on temperature,
+      the ion's valence, and the ratio of its concentration outside to inside the cell.
+    </p>
+    <div class="eq-box">
+      <span class="eq">V<sub>m</sub> =
+        <span class="frac"><span class="num">RT</span><span class="den">zF</span></span>
+        ln ( [ion]<sub>out</sub> / [ion]<sub>in</sub> )
+      </span>
+    </div>
+    <div class="panel">
+      <div class="panel-grid">
+        <div class="controls">
+          <div class="field">
+            <label>Ion species</label>
+            <div class="seg" id="n-ion-seg" role="group" aria-label="Ion species">
+              <button data-ion="Na" aria-pressed="true">Na&#8314;</button>
+              <button data-ion="K" aria-pressed="false">K&#8314;</button>
+              <button data-ion="Cl" aria-pressed="false">Cl&#8315;</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>External concentration <span class="val" id="n-out-val">150</span> mM</label>
+            <input type="range" id="n-out" min="1" max="200" step="1" value="150">
+          </div>
+          <div class="field">
+            <label>Internal concentration <span class="val" id="n-in-val">15</span> mM</label>
+            <input type="range" id="n-in" min="1" max="200" step="1" value="15">
+          </div>
+          <div class="readout">
+            <div class="rlabel">Equilibrium potential</div>
+            <div><span class="rval" id="n-readout">+61.5</span><span class="runit">mV</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="screen-wrap">
+            <div class="screen" id="n-screen"><svg id="n-svg" viewBox="0 0 640 300"></svg></div>
+          </div>
+          <div class="refnote">Bars show V<sub>m</sub> at the textbook concentrations for each ion in a
+            human neuron (table below); the highlighted bar tracks your live selection.</div>
+        </div>
+      </div>
+      <div class="cell-note" id="n-table"></div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 2 : RC ============ -->
+  <section class="module" id="m2">
+    <div class="module-head"><span class="modnum">MODULE&nbsp;02</span><h2>Passive membrane properties</h2></div>
+    <p class="intro">
+      Electrically, the plasma membrane behaves like a resistor and capacitor in parallel: the lipid bilayer stores
+      charge (<em class="term">capacitance</em>), while ion channels let current leak across it
+      (<em class="term">resistance</em>). Passing a current step through this RC circuit charges and discharges the
+      membrane <em class="term">exponentially</em>. The <em class="term">time constant &tau;</em> is how long that
+      takes: the time to reach 63% of the maximum potential while charging, or decay 37% while discharging.
+    </p>
+    <div class="eq-box"><span class="eq">&tau; = R &middot; C</span></div>
+    <div class="panel">
+      <div class="panel-grid">
+        <div class="controls">
+          <div class="field">
+            <label>Preset</label>
+            <div class="seg" id="r-preset-seg" role="group" aria-label="Cell preset">
+              <button data-preset="large" aria-pressed="true">Large cell</button>
+              <button data-preset="small" aria-pressed="false">Small cell</button>
+              <button data-preset="custom" aria-pressed="false">Custom</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Membrane resistance R <span class="val" id="r-r-val">25</span> M&Omega;</label>
+            <input type="range" id="r-r" min="0" max="1000" step="1" value="380">
+          </div>
+          <div class="field">
+            <label>Membrane capacitance C <span class="val" id="r-c-val">0.0314</span> pF</label>
+            <input type="range" id="r-c" min="0" max="1000" step="1" value="480">
+          </div>
+          <div class="readout">
+            <div class="rlabel">Time constant &tau;</div>
+            <div><span class="rval" id="r-readout">0.785</span><span class="runit">&micro;s</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="screen-wrap">
+            <div class="screen" id="r-screen"><svg id="r-svg" viewBox="0 0 640 300"></svg></div>
+          </div>
+          <div class="legend" id="r-legend"></div>
+        </div>
+      </div>
+      <div class="hint"><b>Consider:</b> what are the practical consequences of a long time constant when
+        recording fast electrophysiological events?</div>
+    </div>
+  </section>
+
+  <!-- ============ MODULE 3 : FILTERS ============ -->
+  <section class="module" id="m3">
+    <div class="module-head"><span class="modnum">MODULE&nbsp;03</span><h2>Electronic filters</h2></div>
+    <p class="intro">
+      Electronic filters select or reject signals by frequency. A <em class="term">low-pass</em> filter passes
+      slow (low-frequency) signals and attenuates fast ones above its cutoff; a <em class="term">high-pass</em>
+      filter does the opposite. The recording below sums three sine components &mdash; click a legend entry to
+      isolate it &mdash; then filter the composite to recover just the signal you care about.
+    </p>
+    <div class="panel">
+      <div class="screen-wrap">
+        <div class="screen" id="f-screen1"><svg id="f-svg1" viewBox="0 0 900 260"></svg></div>
+      </div>
+      <div class="legend" id="f-legend1"></div>
+      <div class="cell-note">
+        <span><span class="dot" style="background:var(--s-blue)"></span>Signal 1 &middot; 5 Hz, 50 mV</span>
+        <span><span class="dot" style="background:var(--s-orange)"></span>Signal 2 &middot; 10 Hz, 50 mV</span>
+        <span><span class="dot" style="background:var(--s-aqua)"></span>Signal 3 &middot; 100 Hz, 25 mV &mdash; treat as high-frequency noise</span>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px">
+      <div class="panel-grid">
+        <div class="controls">
+          <div class="field">
+            <label>Filter type</label>
+            <div class="seg" id="f-type-seg" role="group" aria-label="Filter type">
+              <button data-type="none" aria-pressed="true">None</button>
+              <button data-type="low" aria-pressed="false">Low-pass</button>
+              <button data-type="high" aria-pressed="false">High-pass</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Cutoff frequency <span class="val" id="f-cutoff-val">14</span> Hz</label>
+            <input type="range" id="f-cutoff" min="1" max="200" step="1" value="14">
+          </div>
+          <div class="readout">
+            <div class="rlabel">6th-order Butterworth, zero-phase (filtfilt)</div>
+            <div style="font-family:'IBM Plex Mono',monospace;color:var(--screen-ink-dim);font-size:11px;line-height:1.5">
+              Runs client-side in JS, verified to match SciPy's <code style="color:var(--led)">scipy.signal.butter
+              + filtfilt</code> to &lt;1e-8 abs. error.
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="screen-wrap">
+            <div class="screen" id="f-screen2"><svg id="f-svg2" viewBox="0 0 640 300"></svg></div>
+          </div>
+          <div class="legend" id="f-legend2"></div>
+        </div>
+      </div>
+      <div class="hint" id="f-hint"><b>Try it:</b> Signal 3 (100&nbsp;Hz) is high-frequency noise on top of the
+        5&ndash;10&nbsp;Hz signal of interest. Which filter type and roughly what cutoff isolates the noise? Which
+        isolates the signal of interest instead?</div>
+    </div>
+  </section>
+
+  <footer>
+    <span>&copy; 2019&ndash;2026 Guilherme Bauer-Negrini &middot; content CC BY-NC 4.0</span>
+    <span><a href="https://gbnegrini.com" target="_blank" rel="noopener">gbnegrini.com</a> &middot;
+      <a href="https://biomedicaldata.science" target="_blank" rel="noopener">biomedicaldata.science</a></span>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. PHYSICS / MATH (validated against SciPy — see repo tests)
+   ============================================================ */
+
+const R_GAS = 8.314, F_FARADAY = 96485; // SI
+function nernstMv(cOut, cIn, valence, tKelvin = 310) {
+  return (R_GAS * tKelvin) / (valence * F_FARADAY) * Math.log(cOut / cIn) * 1000;
+}
+
+function chargeMv(tUs, rMOhm, cPf) {
+  const tauUs = rMOhm * cPf; // MΩ * pF = µs
+  const v0 = 80; // mV
+  return v0 * (1 - Math.exp(-tUs / tauUs));
+}
+function dischargeMv(tUs, rMOhm, cPf) {
+  const tauUs = rMOhm * cPf;
+  const v0 = chargeMv(5 * tauUs, rMOhm, cPf);
+  return v0 * Math.exp(-tUs / tauUs);
+}
+function rcTrace(rMOhm, cPf, n = 220) {
+  const tau = rMOhm * cPf;
+  const t = [], v = [];
+  for (let i = 0; i < n; i++) { const tt = (5 * tau) * i / (n - 1); t.push(tt); v.push(chargeMv(tt, rMOhm, cPf) - 60); }
+  for (let i = 0; i < n; i++) { const tt = 5 * tau + (5 * tau) * i / (n - 1); t.push(tt); v.push(dischargeMv(tt - 5 * tau, rMOhm, cPf) - 60); }
+  return { t, v, tau };
+}
+
+// --- Butterworth digital filter design + zero-phase filtfilt, matches scipy.signal exactly ---
+function cAdd(a,b){return [a[0]+b[0],a[1]+b[1]];}
+function cSub(a,b){return [a[0]-b[0],a[1]-b[1]];}
+function cMul(a,b){return [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];}
+function cDiv(a,b){const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d, (a[1]*b[0]-a[0]*b[1])/d];}
+function cNeg(a){return [-a[0],-a[1]];}
+function cExpJ(t){return [Math.cos(t), Math.sin(t)];}
+function polyFromRoots(roots){
+  let poly=[[1,0]];
+  for (const r of roots){
+    const next=new Array(poly.length+1).fill(0).map(()=>[0,0]);
+    for (let i=0;i<poly.length;i++){ next[i]=cAdd(next[i],poly[i]); next[i+1]=cSub(next[i+1],cMul(poly[i],r)); }
+    poly=next;
+  }
+  return poly;
+}
+function prodC(arr){ let p=[1,0]; for (const v of arr) p=cMul(p,v); return p; }
+function buttap(N){
+  const poles=[];
+  for (let k=1;k<=N;k++){ const theta=Math.PI*(2*k-N-1)/(2*N); poles.push(cNeg(cExpJ(theta))); }
+  return { zeros: [], poles, gain: [1,0] };
+}
+function butterDesign(N, Wn, btype){
+  const fs=2.0;
+  const warped=4*Math.tan(Math.PI*Wn/fs);
+  let { zeros, poles, gain } = buttap(N);
+  if (btype==='low'){
+    poles = poles.map(p=>[p[0]*warped, p[1]*warped]);
+    let k=gain; for (let i=0;i<N;i++) k=cMul(k,[warped,0]);
+    gain=k;
+  } else {
+    const negPoles = poles.map(cNeg);
+    const kHp = cMul(gain, cDiv([1,0], prodC(negPoles)));
+    poles = poles.map(p=>cDiv([warped,0], p));
+    zeros = new Array(N).fill([0,0]);
+    gain = [kHp[0], 0];
+  }
+  const fs2=2*fs;
+  const degree = poles.length - zeros.length;
+  const zRoots = zeros.map(z=>cDiv(cAdd([fs2,0],z), cSub([fs2,0],z)));
+  const pRoots = poles.map(p=>cDiv(cAdd([fs2,0],p), cSub([fs2,0],p)));
+  for (let i=0;i<degree;i++) zRoots.push([-1,0]);
+  const numZTerm = prodC(zeros.map(z=>cSub([fs2,0],z)));
+  const denPTerm = prodC(poles.map(p=>cSub([fs2,0],p)));
+  const kZ = cMul(gain, cDiv(numZTerm, denPTerm));
+  const bPoly = polyFromRoots(zRoots).map(c=>cMul(c,kZ));
+  const aPoly = polyFromRoots(pRoots);
+  return { b: bPoly.map(c=>c[0]), a: aPoly.map(c=>c[0]) };
+}
+function solveLinear(A,b){
+  const n=b.length; const M=A.map((row,i)=>[...row,b[i]]);
+  for (let col=0; col<n; col++){
+    let piv=col;
+    for (let r=col+1;r<n;r++) if (Math.abs(M[r][col])>Math.abs(M[piv][col])) piv=r;
+    [M[col],M[piv]]=[M[piv],M[col]];
+    const pv=M[col][col];
+    for (let c=col;c<=n;c++) M[col][c]/=pv;
+    for (let r=0;r<n;r++){ if (r===col) continue; const f=M[r][col]; for (let c=col;c<=n;c++) M[r][c]-=f*M[col][c]; }
+  }
+  return M.map(row=>row[n]);
+}
+function lfilterZi(b,a){
+  const n=Math.max(a.length,b.length), m=n-1;
+  const IminusA=[];
+  for (let i=0;i<m;i++){
+    const row=new Array(m).fill(0);
+    for (let j=0;j<m;j++){ const CTij = (j===0) ? -a[i+1] : ((j===i+1)?1:0); row[j]=(i===j?1:0)-CTij; }
+    IminusA.push(row);
+  }
+  const B=[]; for (let i=0;i<m;i++) B.push(b[i+1]-a[i+1]*b[0]);
+  return solveLinear(IminusA,B);
+}
+function lfilterDF2T(b,a,x,z){
+  const n=b.length; const zz=z.slice(); const y=new Array(x.length);
+  for (let i=0;i<x.length;i++){
+    const xi=x[i]; const yi=b[0]*xi+zz[0];
+    for (let j=0;j<n-2;j++) zz[j]=b[j+1]*xi+zz[j+1]-a[j+1]*yi;
+    zz[n-2]=b[n-1]*xi-a[n-1]*yi;
+    y[i]=yi;
+  }
+  return y;
+}
+function oddExt(x,n){
+  const N=x.length, l0=x[0], r0=x[N-1];
+  const left=[]; for (let k=n;k>=1;k--) left.push(2*l0-x[k]);
+  const right=[]; for (let k=2;k<=n+1;k++) right.push(2*r0-x[N-k]);
+  return [...left, ...x, ...right];
+}
+function filtfilt(b,a,x){
+  const ntaps=Math.max(a.length,b.length), padlen=3*ntaps;
+  const zi=lfilterZi(b,a);
+  const ext=oddExt(x,padlen);
+  let y=lfilterDF2T(b,a,ext, zi.map(v=>v*ext[0]));
+  const yRev=y.slice().reverse();
+  let y2=lfilterDF2T(b,a,yRev, zi.map(v=>v*yRev[0]));
+  y2.reverse();
+  return y2.slice(padlen, y2.length-padlen);
+}
+
+/* ============================================================
+   2. TINY SVG CHART ENGINE (line charts w/ crosshair, bar chart)
+   ============================================================ */
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function fmt(v, d = 1) { return Number(v).toFixed(d); }
+
+function decimalsForStep(step) {
+  if (!isFinite(step) || step <= 0 || step >= 1) return 0;
+  return Math.max(0, -Math.floor(Math.log10(step)));
+}
+function niceTicks(min, max, count) {
+  if (min === max) { min -= 1; max += 1; }
+  const span = max - min;
+  const step0 = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(step0)));
+  const norm = step0 / mag;
+  const step = (norm < 1.5 ? 1 : norm < 3 ? 2 : norm < 7 ? 5 : 10) * mag;
+  const start = Math.ceil(min / step) * step;
+  const ticks = [];
+  for (let v = start; v <= max + 1e-9; v += step) ticks.push(Math.round(v / step) * step);
+  return ticks;
+}
+
+function ensureTooltip(container) {
+  let tt = container.querySelector(".tooltip");
+  if (!tt) { tt = document.createElement("div"); tt.className = "tooltip"; container.style.position = "relative"; container.appendChild(tt); }
+  return tt;
+}
+
+// series: [{x:[...], y:[...], color, label, muted}]
+function drawLineChart(svg, container, opts) {
+  const { series, xLabel, yLabel, yDomain, xDomain, directLabels } = opts;
+  svg.innerHTML = "";
+  const vb = svg.viewBox.baseVal;
+  const W = vb.width, H = vb.height;
+  const margin = { top: 16, right: directLabels ? 92 : 20, bottom: 34, left: 48 };
+  const iw = W - margin.left - margin.right, ih = H - margin.top - margin.bottom;
+
+  const visible = series.filter(s => !s.muted);
+  let xMin, xMax, yMin, yMax;
+  if (xDomain) [xMin, xMax] = xDomain;
+  else { xMin = Math.min(...series.map(s => Math.min(...s.x))); xMax = Math.max(...series.map(s => Math.max(...s.x))); }
+  if (yDomain) [yMin, yMax] = yDomain;
+  else if (visible.length) {
+    yMin = Math.min(...visible.map(s => Math.min(...s.y))); yMax = Math.max(...visible.map(s => Math.max(...s.y)));
+    const pad = (yMax - yMin) * 0.12 || 1; yMin -= pad; yMax += pad;
+  } else { yMin = -1; yMax = 1; }
+
+  const sx = x => margin.left + (x - xMin) / (xMax - xMin || 1) * iw;
+  const sy = y => margin.top + ih - (y - yMin) / (yMax - yMin || 1) * ih;
+
+  const g = el("g", {});
+  svg.appendChild(g);
+
+  // grid
+  const xt = niceTicks(xMin, xMax, 6), yt = niceTicks(yMin, yMax, 5);
+  const yDec = decimalsForStep(yt.length > 1 ? yt[1] - yt[0] : 1);
+  const xDec = decimalsForStep(xt.length > 1 ? xt[1] - xt[0] : 1);
+  for (const t of yt) {
+    g.appendChild(el("line", { x1: margin.left, x2: margin.left + iw, y1: sy(t), y2: sy(t), stroke: "var(--screen-grid)", "stroke-width": 1 }));
+    const lab = el("text", { x: margin.left - 8, y: sy(t) + 3.5, "text-anchor": "end", "font-size": 10, fill: "var(--screen-ink-dim)" });
+    lab.textContent = fmt(t, yDec); g.appendChild(lab);
+  }
+  for (const t of xt) {
+    g.appendChild(el("line", { x1: sx(t), x2: sx(t), y1: margin.top, y2: margin.top + ih, stroke: "var(--screen-grid)", "stroke-width": 1 }));
+    const lab = el("text", { x: sx(t), y: margin.top + ih + 16, "text-anchor": "middle", "font-size": 10, fill: "var(--screen-ink-dim)" });
+    lab.textContent = fmt(t, xDec); g.appendChild(lab);
+  }
+  // zero baseline emphasis
+  if (yMin < 0 && yMax > 0) g.appendChild(el("line", { x1: margin.left, x2: margin.left + iw, y1: sy(0), y2: sy(0), stroke: "var(--screen-grid-strong)", "stroke-width": 1 }));
+  g.appendChild(el("line", { x1: margin.left, x2: margin.left, y1: margin.top, y2: margin.top + ih, stroke: "var(--screen-grid-strong)", "stroke-width": 1 }));
+  g.appendChild(el("line", { x1: margin.left, x2: margin.left + iw, y1: margin.top + ih, y2: margin.top + ih, stroke: "var(--screen-grid-strong)", "stroke-width": 1 }));
+
+  if (xLabel) { const t = el("text", { x: margin.left + iw / 2, y: H - 4, "text-anchor": "middle", "font-size": 10.5, fill: "var(--screen-ink-dim)" }); t.textContent = xLabel; g.appendChild(t); }
+  if (yLabel) { const t = el("text", { x: 12, y: margin.top - 4, "text-anchor": "start", "font-size": 10.5, fill: "var(--screen-ink-dim)" }); t.textContent = yLabel; g.appendChild(t); }
+
+  // lines
+  for (const s of series) {
+    if (s.muted) continue;
+    let d = "";
+    for (let i = 0; i < s.x.length; i++) d += (i === 0 ? "M" : "L") + sx(s.x[i]).toFixed(2) + "," + sy(s.y[i]).toFixed(2) + " ";
+    const path = el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round", opacity: s.alpha ?? 1 });
+    if (s.glow !== false) path.style.filter = `drop-shadow(0 0 3px color-mix(in srgb, ${s.color} 45%, transparent))`;
+    g.appendChild(path);
+    if (directLabels) {
+      const lx = s.x[s.x.length - 1], ly = s.y[s.y.length - 1];
+      const t = el("text", { x: sx(lx) + 6, y: sy(ly) + 3.5, "font-size": 10.5, fill: s.color, "font-weight": 600 });
+      t.textContent = s.label; g.appendChild(t);
+    }
+  }
+
+  // crosshair + tooltip
+  const overlay = el("rect", { x: margin.left, y: margin.top, width: iw, height: ih, fill: "transparent", cursor: "crosshair" });
+  const cross = el("line", { y1: margin.top, y2: margin.top + ih, stroke: "var(--screen-grid-strong)", "stroke-width": 1, opacity: 0 });
+  g.appendChild(cross);
+  const dots = visible.map(s => { const c = el("circle", { r: 3.5, fill: s.color, opacity: 0 }); g.appendChild(c); return c; });
+  svg.appendChild(overlay);
+  const tt = ensureTooltip(container);
+
+  overlay.addEventListener("mousemove", (ev) => {
+    const rect = svg.getBoundingClientRect();
+    const px = (ev.clientX - rect.left) * (W / rect.width);
+    const xVal = xMin + (px - margin.left) / iw * (xMax - xMin);
+    let rows = "";
+    visible.forEach((s, i) => {
+      let bi = 0, bd = Infinity;
+      for (let k = 0; k < s.x.length; k++) { const dd = Math.abs(s.x[k] - xVal); if (dd < bd) { bd = dd; bi = k; } }
+      dots[i].setAttribute("cx", sx(s.x[bi])); dots[i].setAttribute("cy", sy(s.y[bi])); dots[i].setAttribute("opacity", 1);
+      rows += `<div class="tt-row"><span class="tt-sw" style="background:${s.color}"></span>${s.label}: ${fmt(s.y[bi], 2)}</div>`;
+    });
+    cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("opacity", 1);
+    tt.innerHTML = `<div class="tt-row" style="color:var(--ink-3);margin-bottom:2px">${opts.xLabel || "x"} = ${fmt(xVal, 2)}</div>` + rows;
+    const cw = container.getBoundingClientRect();
+    let left = (ev.clientX - cw.left) + 14, top = (ev.clientY - cw.top) - 10;
+    tt.style.left = left + "px"; tt.style.top = top + "px"; tt.style.opacity = 1;
+  });
+  overlay.addEventListener("mouseleave", () => { cross.setAttribute("opacity", 0); dots.forEach(d => d.setAttribute("opacity", 0)); tt.style.opacity = 0; });
+}
+
+// data: [{label, value, color, highlight}]
+function drawBarChart(svg, container, data, opts) {
+  svg.innerHTML = "";
+  const vb = svg.viewBox.baseVal; const W = vb.width, H = vb.height;
+  const margin = { top: 14, right: 60, bottom: 14, left: 78 };
+  const iw = W - margin.left - margin.right, ih = H - margin.top - margin.bottom;
+  const rowH = ih / data.length;
+  const vmax = Math.max(...data.map(d => Math.abs(d.value)), 1) * 1.25;
+  const sx = v => margin.left + iw / 2 + (v / vmax) * (iw / 2);
+  const g = el("g", {}); svg.appendChild(g);
+
+  g.appendChild(el("line", { x1: sx(0), x2: sx(0), y1: margin.top, y2: margin.top + ih, stroke: "var(--screen-grid-strong)", "stroke-width": 1 }));
+  const ticks = niceTicks(-vmax, vmax, 6);
+  for (const t of ticks) {
+    g.appendChild(el("line", { x1: sx(t), x2: sx(t), y1: margin.top, y2: margin.top + ih, stroke: "var(--screen-grid)", "stroke-width": 1 }));
+    const lab = el("text", { x: sx(t), y: margin.top + ih + 13, "text-anchor": "middle", "font-size": 9.5, fill: "var(--screen-ink-dim)" });
+    lab.textContent = fmt(t, 0); g.appendChild(lab);
+  }
+  const tt = ensureTooltip(container);
+  data.forEach((d, i) => {
+    const cy = margin.top + rowH * i + rowH / 2;
+    const barH = Math.min(22, rowH * 0.5);
+    const x0 = sx(0), x1 = sx(d.value);
+    const rect = el("rect", {
+      x: Math.min(x0, x1), y: cy - barH / 2, width: Math.max(2, Math.abs(x1 - x0)), height: barH,
+      rx: 3, fill: d.color, opacity: d.highlight ? 1 : 0.55
+    });
+    if (d.highlight) rect.style.filter = `drop-shadow(0 0 4px color-mix(in srgb, ${d.color} 55%, transparent))`;
+    g.appendChild(rect);
+    const lab = el("text", { x: margin.left - 10, y: cy + 4, "text-anchor": "end", "font-size": 11.5, fill: "var(--screen-ink)", "font-weight": 600 });
+    lab.textContent = d.label; g.appendChild(lab);
+    const val = el("text", {
+      x: x1 + (d.value >= 0 ? 8 : -8), y: cy + 4, "text-anchor": d.value >= 0 ? "start" : "end",
+      "font-size": 11, fill: d.color, "font-weight": 600
+    });
+    val.textContent = fmt(d.value, 1) + " mV"; g.appendChild(val);
+
+    rect.style.cursor = "pointer";
+    rect.addEventListener("mousemove", (ev) => {
+      const cw = container.getBoundingClientRect();
+      tt.innerHTML = `<div class="tt-row"><span class="tt-sw" style="background:${d.color}"></span>${d.label}: ${fmt(d.value, 2)} mV</div>`;
+      tt.style.left = (ev.clientX - cw.left + 14) + "px"; tt.style.top = (ev.clientY - cw.top - 10) + "px"; tt.style.opacity = 1;
+    });
+    rect.addEventListener("mouseleave", () => tt.style.opacity = 0);
+  });
+}
+
+function buildLegend(el_, series, onToggle) {
+  el_.innerHTML = "";
+  series.forEach((s) => {
+    const b = document.createElement("button");
+    b.dataset.muted = s.muted ? "true" : "false";
+    b.innerHTML = `<span class="sw" style="background:${s.color}"></span>${s.label}`;
+    b.addEventListener("click", () => { s.muted = !s.muted; b.dataset.muted = s.muted ? "true" : "false"; onToggle(); });
+    el_.appendChild(b);
+  });
+}
+
+/* ============================================================
+   3. MODULE 1 — Nernst
+   ============================================================ */
+(function () {
+  const IONS = {
+    Na: { label: "Na\u207A", valence: 1, out: 150, in: 15, color: "var(--s-blue)", answer: 61.5 },
+    K: { label: "K\u207A", valence: 1, out: 5, in: 100, color: "var(--s-orange)", answer: -80.0 },
+    Cl: { label: "Cl\u207B", valence: -1, out: 150, in: 13, color: "var(--s-aqua)", answer: -65.3 },
+  };
+  let ion = "Na";
+  const outSlider = document.getElementById("n-out"), inSlider = document.getElementById("n-in");
+  const outVal = document.getElementById("n-out-val"), inVal = document.getElementById("n-in-val");
+  const readout = document.getElementById("n-readout");
+  const svg = document.getElementById("n-svg"), screen = document.getElementById("n-screen");
+  const seg = document.getElementById("n-ion-seg");
+  const tableEl = document.getElementById("n-table");
+
+  function render() {
+    const cOut = +outSlider.value, cIn = +inSlider.value, v = IONS[ion].valence;
+    const vm = nernstMv(cOut, cIn, v);
+    outVal.textContent = cOut; inVal.textContent = cIn;
+    readout.textContent = (vm >= 0 ? "+" : "") + fmt(vm, 1);
+
+    const data = Object.entries(IONS).map(([key, def]) => ({
+      label: def.label,
+      value: key === ion ? vm : nernstMv(def.out, def.in, def.valence),
+      color: def.color, highlight: key === ion,
+    }));
+    drawBarChart(svg, screen, data, {});
+
+    tableEl.innerHTML = Object.entries(IONS).map(([key, def]) => `
+      <span><span class="dot" style="background:${def.color}"></span>${def.label}:
+      out ${def.out} mM / in ${def.in} mM &rarr; <span class="mono" style="color:var(--ink)">${(nernstMv(def.out, def.in, def.valence) >= 0 ? "+" : "")}${fmt(nernstMv(def.out, def.in, def.valence), 1)} mV</span></span>`).join("");
+  }
+  seg.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button"); if (!btn) return;
+    ion = btn.dataset.ion;
+    [...seg.children].forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    outSlider.value = IONS[ion].out; inSlider.value = IONS[ion].in;
+    render();
+  });
+  outSlider.addEventListener("input", render);
+  inSlider.addEventListener("input", render);
+  render();
+  window.addEventListener("resize", render);
+})();
+
+/* ============================================================
+   4. MODULE 2 — RC time constant
+   ============================================================ */
+(function () {
+  const PRESETS = { large: { r: 25, c: 0.0314 }, small: { r: 6370, c: 0.000314 } };
+  function rToSlider(r) { return Math.log10(Math.max(r, 0.001)) / Math.log10(10000) * 1000; } // 0..1000 over 1..10000
+  function sliderToR(s) { return Math.pow(10, s / 1000 * Math.log10(10000)); }
+  function cToSlider(c) { return (Math.log10(Math.max(c, 0.00001)) + 5) / 5 * 1000; } // 1e-5..1 over 0..1000
+  function sliderToC(s) { return Math.pow(10, (s / 1000) * 5 - 5); }
+
+  const rSlider = document.getElementById("r-r"), cSlider = document.getElementById("r-c");
+  const rVal = document.getElementById("r-r-val"), cVal = document.getElementById("r-c-val");
+  const readout = document.getElementById("r-readout");
+  const svg = document.getElementById("r-svg"), screen = document.getElementById("r-screen");
+  const seg = document.getElementById("r-preset-seg");
+  const legendEl = document.getElementById("r-legend");
+
+  const series = {
+    large: { label: "Large cell (reference)", color: "var(--s-blue)", muted: false, x: [], y: [] },
+    small: { label: "Small cell (reference)", color: "var(--s-orange)", muted: false, x: [], y: [] },
+    custom: { label: "Your cell", color: "var(--s-aqua)", muted: false, x: [], y: [] },
+  };
+  buildLegend(legendEl, [series.large, series.small, series.custom], render);
+
+  let preset = "large";
+  function setFromPreset(p) {
+    preset = p;
+    if (p !== "custom") { rSlider.value = rToSlider(PRESETS[p].r); cSlider.value = cToSlider(PRESETS[p].c); }
+  }
+
+  function render() {
+    const r = sliderToR(+rSlider.value), c = sliderToC(+cSlider.value);
+    rVal.textContent = r < 10 ? fmt(r, 2) : fmt(r, 0);
+    cVal.textContent = c < 0.001 ? c.toExponential(2) : fmt(c, 4);
+
+    const tLarge = rcTrace(PRESETS.large.r, PRESETS.large.c);
+    const tSmall = rcTrace(PRESETS.small.r, PRESETS.small.c);
+    const tCustom = rcTrace(r, c);
+    series.large.x = tLarge.t; series.large.y = tLarge.v;
+    series.small.x = tSmall.t; series.small.y = tSmall.v;
+    series.custom.x = tCustom.t; series.custom.y = tCustom.v;
+
+    readout.textContent = tCustom.tau < 1 ? fmt(tCustom.tau, 3) : (tCustom.tau < 1000 ? fmt(tCustom.tau, 2) : fmt(tCustom.tau / 1000, 2));
+    document.querySelector("#m2 .runit").textContent = tCustom.tau < 1000 ? "\u00B5s" : "ms";
+
+    const xMax = Math.max(tLarge.t[tLarge.t.length - 1], tSmall.t[tSmall.t.length - 1], tCustom.t[tCustom.t.length - 1]);
+    drawLineChart(svg, screen, {
+      series: [series.large, series.small, series.custom],
+      xLabel: "Time (\u00B5s)", yLabel: "Potential (mV)",
+      xDomain: [0, xMax], yDomain: [-65, 25],
+    });
+  }
+  seg.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button"); if (!btn) return;
+    [...seg.children].forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    setFromPreset(btn.dataset.preset); render();
+  });
+  rSlider.addEventListener("input", () => {
+    if (preset !== "custom") { preset = "custom"; [...seg.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === "custom" ? "true" : "false")); }
+    render();
+  });
+  cSlider.addEventListener("input", () => {
+    if (preset !== "custom") { preset = "custom"; [...seg.children].forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === "custom" ? "true" : "false")); }
+    render();
+  });
+  setFromPreset("large"); render();
+  window.addEventListener("resize", render);
+})();
+
+/* ============================================================
+   5. MODULE 3 — Signals & filters
+   ============================================================ */
+(function () {
+  const fs = 500, T = 1, n = T * fs;
+  const t = []; for (let i = 0; i < n; i++) t.push(i / fs);
+  const sig1 = t.map(tt => 50 * Math.sin(2 * Math.PI * 5 * tt));
+  const sig2 = t.map(tt => 50 * Math.sin(2 * Math.PI * 10 * tt));
+  const sig3 = t.map(tt => 25 * Math.sin(2 * Math.PI * 100 * tt));
+  const composite = t.map((_, i) => sig1[i] + sig2[i] + sig3[i]);
+
+  const s1 = { label: "Signal 1 (5 Hz)", color: "var(--s-blue)", x: t, y: sig1, muted: false, alpha: 0.85 };
+  const s2 = { label: "Signal 2 (10 Hz)", color: "var(--s-orange)", x: t, y: sig2, muted: false, alpha: 0.85 };
+  const s3 = { label: "Signal 3 (100 Hz)", color: "var(--s-aqua)", x: t, y: sig3, muted: false, alpha: 0.85 };
+  const sc = { label: "Composite", color: "var(--s-yellow)", x: t, y: composite, muted: false };
+
+  const svg1 = document.getElementById("f-svg1"), screen1 = document.getElementById("f-screen1");
+  const legend1 = document.getElementById("f-legend1");
+  function render1() { drawLineChart(svg1, screen1, { series: [s1, s2, s3, sc], xLabel: "Time (s)", yLabel: "Amplitude (mV)", yDomain: [-135, 135] }); }
+  buildLegend(legend1, [s1, s2, s3, sc], render1);
+  render1();
+  window.addEventListener("resize", render1);
+
+  // filter panel
+  const typeSeg = document.getElementById("f-type-seg");
+  const cutoffSlider = document.getElementById("f-cutoff"), cutoffVal = document.getElementById("f-cutoff-val");
+  const svg2 = document.getElementById("f-svg2"), screen2 = document.getElementById("f-screen2");
+  const legend2 = document.getElementById("f-legend2");
+  const hint = document.getElementById("f-hint");
+  let ftype = "none";
+
+  const compSeries = { label: "Composite", color: "var(--s-yellow)", x: t, y: composite, muted: false, alpha: 0.55 };
+  const filtSeries = { label: "Filtered", color: "var(--s-blue)", x: t, y: composite.slice(), muted: false };
+
+  function render2() {
+    const cutoff = +cutoffSlider.value;
+    cutoffVal.textContent = cutoff;
+    let filtered = composite;
+    if (ftype !== "none") {
+      const Wn = cutoff / (0.5 * fs);
+      const { b, a } = butterDesign(6, Wn, ftype);
+      filtered = filtfilt(b, a, composite);
+    }
+    filtSeries.y = filtered;
+    filtSeries.label = ftype === "none" ? "Composite (no filter)" : "Filtered";
+    drawLineChart(svg2, screen2, { series: [compSeries, filtSeries], xLabel: "Time (s)", yLabel: "Amplitude (mV)", yDomain: [-135, 135] });
+
+    if (ftype === "none") hint.innerHTML = "<b>Try it:</b> pick a filter type and cutoff, then watch the trace change.";
+    else if (ftype === "low") hint.innerHTML = `<b>Low-pass @ ${cutoff} Hz:</b> passes the 5&ndash;10 Hz signal, attenuates the 100 Hz noise. A cutoff <span class="answer">roughly 30&ndash;70 Hz</span> isolates the signal of interest.`;
+    else hint.innerHTML = `<b>High-pass @ ${cutoff} Hz:</b> passes the 100 Hz noise, attenuates the 5&ndash;10 Hz signal. A cutoff <span class="answer">roughly 30&ndash;70 Hz</span> isolates the noise instead.`;
+  }
+  buildLegend(legend2, [compSeries, filtSeries], render2);
+  typeSeg.addEventListener("click", (ev) => {
+    const btn = ev.target.closest("button"); if (!btn) return;
+    ftype = btn.dataset.type;
+    [...typeSeg.children].forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+    render2();
+  });
+  cutoffSlider.addEventListener("input", render2);
+  render2();
+  window.addEventListener("resize", render2);
+})();
+</script>
+
+</body>
+</html>
